@@ -117,6 +117,58 @@ namespace XSDDiagram {
             {
                 this["CompactLayoutDensity"] = value;
             }
+        }        
+
+        [Category("Security protocols"), DisplayName("Enable SSL 3.0"), Description("Enable SSL 3.0")]
+        [global::System.Configuration.UserScopedSettingAttribute()]
+        [global::System.Diagnostics.DebuggerNonUserCodeAttribute()]
+        [global::System.Configuration.DefaultSettingValueAttribute("True")]
+        public bool UseSsl_3_0 {
+            get {
+                return ((bool)(this["UseSsl_3_0"]));
+            }
+            set {
+                this["UseSsl_3_0"] = value;
+            }
+        }
+
+        [Category("Security protocols"), DisplayName("Enable TLS 1.0"), Description("Enable TLS 1.0.")]
+        [global::System.Configuration.UserScopedSettingAttribute()]
+        [global::System.Diagnostics.DebuggerNonUserCodeAttribute()]
+        [global::System.Configuration.DefaultSettingValueAttribute("True")]
+        public bool UseTls1_0 {
+            get {
+                return ((bool)(this["UseTls1_0"]));
+            }
+            set {
+                this["UseTls1_0"] = value;
+            }
+        }
+
+        [Category("Security protocols"), DisplayName("Enable TLS 1.1"), Description("Enable TLS 1.1.")]
+        [global::System.Configuration.UserScopedSettingAttribute()]
+        [global::System.Diagnostics.DebuggerNonUserCodeAttribute()]
+        [global::System.Configuration.DefaultSettingValueAttribute("True")]
+        public bool UseTls1_1 {
+            get {
+                return ((bool)(this["UseTls1_1"]));
+            }
+            set {
+                this["UseTls1_1"] = value;
+            }
+        }
+
+        [Category("Security protocols"), DisplayName("Enable TLS 1.2"), Description("Enable TLS 1.2.")]
+        [global::System.Configuration.UserScopedSettingAttribute()]
+        [global::System.Diagnostics.DebuggerNonUserCodeAttribute()]
+        [global::System.Configuration.DefaultSettingValueAttribute("True")]
+        public bool UseTls1_2 {
+            get {
+                return ((bool)(this["UseTls1_2"]));
+            }
+            set {
+                this["UseTls1_2"] = value;
+            }
         }
     }
 }

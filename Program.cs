@@ -23,6 +23,7 @@ using System.Windows.Forms;
 using XSDDiagram.Rendering;
 using System.Threading;
 using System.Globalization;
+using System.Net;
 
 namespace XSDDiagram
 {
@@ -103,7 +104,9 @@ Example 5:
 		[STAThread]
 		public static void Main()
 		{
-            Thread.CurrentThread.CurrentCulture = CultureInfo.InvariantCulture;
+			Thread.CurrentThread.CurrentCulture = CultureInfo.InvariantCulture;
+
+			SetSecurityProtocols();
 
 			bool streamToOutput = !string.IsNullOrEmpty(Options.OutputFile) || Options.OutputOnStdOut;
 			if (Options.NoGUI || Options.RequestHelp || streamToOutput)
@@ -120,119 +123,119 @@ Example 5:
 					string version = typeof(Program).Assembly.GetName().Version.ToString();
 					Log(usage, version, Path.GetFileName(Environment.GetCommandLineArgs()[0]));
 
-                    return;
-                }
+					return;
+				}
 
 				Log("Loading the file: {0}\n", Options.InputFile);
 
-                Schema schema = new Schema();
+				Schema schema = new Schema();
                 schema.RequestCredential += delegate(string url, string realm, int attemptCount, out string username, out string password)
                 {
-                    username = password = "";
+					username = password = "";
                     if(!string.IsNullOrEmpty(Options.Username))
                     {
-                        if (attemptCount > 1)
-                            return false;
-                        username = Options.Username;
-                        password = Options.Password;
-                        return true;
-                    }
-                    return false;
-                };
+						if (attemptCount > 1)
+							return false;
+						username = Options.Username;
+						password = Options.Password;
+						return true;
+					}
+					return false;
+				};
 
 				schema.LoadSchema(Options.InputFile);
 
                 if (schema.LoadError.Count > 0)
                 {
-                    LogError("There are errors while loading:\n");
+					LogError("There are errors while loading:\n");
                     foreach (var error in schema.LoadError)
                     {
-                        LogError(error);
-                    }
-                    LogError("\r\n");
-                }
+						LogError(error);
+					}
+					LogError("\r\n");
+				}
 
-                Diagram diagram = new Diagram();
-                diagram.ShowDocumentation = Options.ShowDocumentation;
-                diagram.ElementsByName = schema.ElementsByName;
+				Diagram diagram = new Diagram();
+				diagram.ShowDocumentation = Options.ShowDocumentation;
+				diagram.ElementsByName = schema.ElementsByName;
 				diagram.Scale = Options.Zoom / 100.0f;
 
 				foreach (var rootElement in Options.RootElements)
 				{
-                    string elementName = rootElement;
-                    string elementNamespace = null;
+					string elementName = rootElement;
+					string elementNamespace = null;
                     if(!string.IsNullOrEmpty(elementName))
                     {
-                        var pos = rootElement.IndexOf("@");
+						var pos = rootElement.IndexOf("@");
                         if(pos != -1)
                         {
-                            elementName = rootElement.Substring(0, pos);
-                            elementNamespace = rootElement.Substring(pos + 1);
-                        }
-                    }
+							elementName = rootElement.Substring(0, pos);
+							elementNamespace = rootElement.Substring(pos + 1);
+						}
+					}
 
                     foreach (var element in schema.Elements)
 					{
-                        if ((elementNamespace != null && elementNamespace == element.NameSpace && element.Name == elementName) ||
+						if ((elementNamespace != null && elementNamespace == element.NameSpace && element.Name == elementName) ||
                             (elementNamespace == null && element.Name == elementName))
                         {
 							Log("Adding '{0}' element to the diagram...\n", rootElement);
-                            diagram.Add(element.Tag, element.NameSpace);
-                        }
-                    }
-                }
-                Form form = new Form();
-                Graphics graphics = form.CreateGraphics();
-                graphics.SmoothingMode = System.Drawing.Drawing2D.SmoothingMode.AntiAlias;
-                graphics.TextRenderingHint = System.Drawing.Text.TextRenderingHint.AntiAlias;
+							diagram.Add(element.Tag, element.NameSpace);
+						}
+					}
+				}
+				Form form = new Form();
+				Graphics graphics = form.CreateGraphics();
+				graphics.SmoothingMode = System.Drawing.Drawing2D.SmoothingMode.AntiAlias;
+				graphics.TextRenderingHint = System.Drawing.Text.TextRenderingHint.AntiAlias;
 
 				for (int i = 0; i < Options.ExpandLevel; i++)
                 {
 					Log("Expanding to level {0}...\n", i + 1);
                     if (!diagram.ExpandOneLevel())
                     {
-                        Log("Cannot expand more.\n");
-                        break;
-                    }
-                }
-                diagram.Layout(graphics);
+						Log("Cannot expand more.\n");
+						break;
+					}
+				}
+				diagram.Layout(graphics);
 				Log("Saving image...\n");
                 try
                 {
 					bool result = false;
 
-                    DiagramExporter exporter = new DiagramExporter(diagram);
-                    IDictionary<string, object> specificRendererParameters = new Dictionary<string, object>()
-                            {
-                                { "TextOutputFields", Options.TextOutputFields },
-                                { "DisplayAttributes", Options.DisplayAttributes },
-                                { "Schema", schema }
+					DiagramExporter exporter = new DiagramExporter(diagram);
+					IDictionary<string, object> specificRendererParameters = new Dictionary<string, object>()
+							{
+								{ "TextOutputFields", Options.TextOutputFields },
+								{ "DisplayAttributes", Options.DisplayAttributes },
+								{ "Schema", schema }
                                 //For future parameters, {}
                             };
                     if (Options.OutputOnStdOut)
                     {
-                        Stream stream = Console.OpenStandardOutput();
-                        result = exporter.Export(stream, "." + Options.OutputOnStdOutExtension.ToLower(), graphics, new DiagramAlertHandler(ByPassSaveAlert), specificRendererParameters);
-                        stream.Flush();
-                    }
+						Stream stream = Console.OpenStandardOutput();
+						result = exporter.Export(stream, "." + Options.OutputOnStdOutExtension.ToLower(), graphics, new DiagramAlertHandler(ByPassSaveAlert), specificRendererParameters);
+						stream.Flush();
+					}
                     else
                     {
-                        result = exporter.Export(Options.OutputFile, graphics, new DiagramAlertHandler(SaveAlert), specificRendererParameters);
-                    }
+						result = exporter.Export(Options.OutputFile, graphics, new DiagramAlertHandler(SaveAlert), specificRendererParameters);
+					}
 
 					if (result)
 						Log("The diagram is now saved in the file: {0}\n", Options.OutputFile);
-                    else
+					else
 						Log("ERROR: The diagram has not been saved!\n");
-                }
+				}
                 catch (Exception ex)
                 {
 					Log("ERROR: The diagram has not been saved. {0}\n", ex.Message);
-                }
+				}
 
-                graphics.Dispose();
-                form.Dispose();
-            }
+				graphics.Dispose();
+				form.Dispose();
+			}
             else
             {
 				if (Options.RequestHelp)
@@ -241,24 +244,57 @@ Example 5:
 					MessageBox.Show(string.Format(usage, version, Environment.GetCommandLineArgs()[0]));
 				}
 
-                Application.ThreadException += HandleThreadException;
-                Application.EnableVisualStyles();
-                Application.SetCompatibleTextRenderingDefault(false);
-                Application.Run(new MainForm());
-            }
-        }
+				Application.ThreadException += HandleThreadException;
+				Application.EnableVisualStyles();
+				Application.SetCompatibleTextRenderingDefault(false);
+				Application.Run(new MainForm());
+			}
+		}
 
-        static void Log(string format, params object[] arg)
-        {
-            if (Options.OutputOnStdOut)
-                return;
-            Console.Write(format, arg);
-        }
+		/// <summary>
+		/// sets security protocols
+		/// </summary>
+		internal static void SetSecurityProtocols() {
+
+			var defaultProtocols = ServicePointManager.SecurityProtocol;
+
+			try {
+				SetSecurityProtocol(SecurityProtocolType.Ssl3, Settings.Default.UseSsl_3_0);
+				SetSecurityProtocol(SecurityProtocolType.Tls, Settings.Default.UseTls1_0);
+				SetSecurityProtocol((SecurityProtocolType)768, Settings.Default.UseTls1_1);
+				SetSecurityProtocol((SecurityProtocolType)3072, Settings.Default.UseTls1_2);
+			}
+			catch {
+				ServicePointManager.SecurityProtocol = defaultProtocols;
+				MessageBox.Show($"Error while setting security protocols. Will use default protocols: {defaultProtocols}");				
+			}
+		}
+
+		/// <summary>
+		/// sets information about usage of security protocol
+		/// </summary>
+		/// <param name="securityProtocol">security protocol</param>
+		/// <param name="allowToUse">allow or not</param>
+		private static void SetSecurityProtocol(SecurityProtocolType securityProtocol, bool allowToUse) {
+
+			if(allowToUse) {
+				ServicePointManager.SecurityProtocol |= securityProtocol;
+			}
+			else {
+				ServicePointManager.SecurityProtocol &= ~securityProtocol;
+			}
+		}
+
+		static void Log(string format, params object[] arg) {
+			if (Options.OutputOnStdOut)
+				return;
+			Console.Write(format, arg);
+		}
 
         static void LogError(string format, params object[] arg)
         {
-            Console.Error.Write(format, arg);
-        }
+			Console.Error.Write(format, arg);
+		}
 
 		static bool ByPassSaveAlert(string title, string message)
 		{
@@ -273,8 +309,8 @@ Example 5:
 				Log("\nYes\n");
 				return true;
 			}
-			
-            ConsoleKeyInfo consoleKeyInfo = Console.ReadKey(false);
+
+			ConsoleKeyInfo consoleKeyInfo = Console.ReadKey(false);
 			Log("\n");
 			if (consoleKeyInfo.Key == ConsoleKey.Y || consoleKeyInfo.Key == ConsoleKey.Enter)
 			{
@@ -283,7 +319,7 @@ Example 5:
 			}
 			else
 				return false;
-        }
+		}
 
 		static void HandleThreadException(object sender, System.Threading.ThreadExceptionEventArgs e)
 		{

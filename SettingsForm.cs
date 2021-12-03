@@ -29,6 +29,10 @@ namespace XSDDiagram
         private void propertyGrid1_PropertyValueChanged(object s, PropertyValueChangedEventArgs e)
         {
             MainForm.Form.ChangeSetting(e.ChangedItem.PropertyDescriptor.Name);
+
+            if (String.Compare(e.ChangedItem?.Parent?.Label, "Security protocols") == 0) {
+                Program.SetSecurityProtocols();
+            }
         }
     }
 }
